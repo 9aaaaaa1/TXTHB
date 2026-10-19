@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TXT合并随机排序--新</title>
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, -apple-system, "Microsoft YaHei", sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 32px 16px; background: Canvas; color: CanvasText; }
+    main { max-width: 760px; margin: 0 auto; }
+    h1 { font-size: clamp(1.5rem, 4vw, 2rem); margin-bottom: 8px; }
+    .sub { color: GrayText; line-height: 1.6; margin-top: 0; }
+    .panel { border: 1px solid color-mix(in srgb, CanvasText 18%, transparent); border-radius: 16px; padding: 22px; margin-top: 22px; }
+    label { display: block; font-weight: 650; margin-bottom: 10px; }
+    input[type=file] { width: 100%; padding: 14px; border: 1px dashed GrayText; border-radius: 10px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+    button, a.button { border: 0; border-radius: 10px; padding: 12px 18px; font: inherit; font-weight: 650; cursor: pointer; text-decoration: none; }
+    #run { background: #2563eb; color: white; }
+    #download { background: #15803d; color: white; display: none; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    #status { margin-top: 16px; line-height: 1.6; overflow-wrap: anywhere; }
+    .note { font-size: .92rem; color: GrayText; line-height: 1.65; }
+    code { overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>TXT 合并随机排序</h1>
+    <p class="sub">选择多个 TXT 文件，合并后随机打乱所有非空文本行，并下载结果。</p>
+
+    <section class="panel">
+      <label for="files">第一步：选择 TXT 文件（可多选）</label>
+      <input id="files" type="file" accept=".txt,text/plain" multiple>
+      <div class="actions">
+        <button id="run" type="button">合并并随机排序</button>
+        <a id="download" class="button" download="合并随机结果.txt">下载合并随机结果.txt</a>
+      </div>
+      <div id="status" role="status" aria-live="polite">请选择一个或多个 TXT 文件。</div>
+    </section>
+
+    <section class="panel">
+      <strong>处理规则</strong>
+      <ul>
+        <li>合并所选文件的文本内容。</li>
+        <li>删除完全空白的行；只含空格的行会保留，和原 BAT 的筛选规则一致。</li>
+        <li>随机打乱全部剩余文本行，不保留原文件分组顺序。</li>
+        <li>结果以 UTF-8 编码下载。</li>
+      </ul>
+      <p class="note">隐私说明：文件在当前浏览器中处理，不会上传到 GitHub 或其他服务器。</p>
+    </section>
+  </main>
+
+  <script>
+    const fileInput = document.getElementById('files');
+    const runButton = document.getElementById('run');
+    const downloadLink = document.getElementById('download');
+    const status = document.getElementById('status');
+    let outputUrl = null;
+
+    // Fisher–Yates shuffle: randomly reorder every line.
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    runButton.addEventListener('click', async () => {
+      const files = Array.from(fileInput.files || []);
+      if (files.length === 0) {
+        status.textContent = '请先选择至少一个 TXT 文件。';
+        return;
+      }
+
+      runButton.disabled = true;
+      downloadLink.style.display = 'none';
+      status.textContent = `正在读取 ${files.length} 个文件…`;
+
+      try {
+        const contents = await Promise.all(files.map(file => file.text()));
+        // Match Get-Content filtering: omit empty lines, but preserve whitespace-only lines.
+        const lines = contents
+          .flatMap(content => content.split(/\r\n|\n|\r/))
+          .filter(line => line !== '');
+
+        shuffle(lines);
+        const output = lines.join('\r\n') + (lines.length ? '\r\n' : '');
+        const blob = new Blob(['\uFEFF', output], { type: 'text/plain;charset=utf-8' });
+
+        if (outputUrl) URL.revokeObjectURL(outputUrl);
+        outputUrl = URL.createObjectURL(blob);
+        downloadLink.href = outputUrl;
+        downloadLink.style.display = 'inline-block';
+        status.textContent = `处理完成！读取 ${files.length} 个文件，共保留 ${lines.length} 行。点击“下载合并随机结果.txt”保存。`;
+      } catch (error) {
+        status.textContent = `处理失败：${error?.message || '无法读取文件，请重试。'}`;
+      } finally {
+        runButton.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
