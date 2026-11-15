@@ -1,0 +1,872 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拉货利润管家</title>
+<style>
+:root {
+  --blue:#3569e8;
+  --green:#159b72;
+  --red:#df5260;
+  --bg:#f3f6fb;
+  --text:#182238;
+  --muted:#7b879a;
+  --border:#e7ecf3;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",
+  "Microsoft YaHei",sans-serif;
+}
+.container{
+  max-width:1050px;
+  margin:auto;
+  padding:20px 14px 45px;
+}
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-bottom:20px;
+}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{
+  width:46px;height:46px;
+  border-radius:14px;
+  background:linear-gradient(135deg,#3569e8,#7b9af4);
+  color:white;
+  display:grid;place-items:center;
+  font-size:25px;
+}
+h1{font-size:21px;margin:0 0 4px}
+.subtitle{font-size:12px;color:var(--muted)}
+.actions{display:flex;gap:7px;flex-wrap:wrap}
+button{
+  border:0;
+  border-radius:9px;
+  padding:10px 13px;
+  cursor:pointer;
+  font-size:13px;
+  font-weight:600;
+}
+.primary{background:var(--blue);color:white}
+.soft{background:#eaf0ff;color:#315fc9}
+.danger{background:#fff0f1;color:var(--red)}
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin-bottom:16px;
+}
+.stat,.panel{
+  background:white;
+  border:1px solid var(--border);
+  border-radius:15px;
+  box-shadow:0 5px 20px #1d31500b;
+}
+.stat{padding:16px}
+.stat label{font-size:12px;color:var(--muted)}
+.stat strong{
+  display:block;
+  font-size:23px;
+  margin:9px 0 4px;
+}
+.stat small{font-size:11px;color:var(--muted)}
+.green{color:var(--green)}
+.blue{color:var(--blue)}
+.panel{padding:17px;margin-bottom:16px}
+.panel-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:15px;
+}
+h2{font-size:16px;margin:0}
+.muted{font-size:12px;color:var(--muted)}
+.form-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+}
+.field label{
+  display:block;
+  font-size:12px;
+  color:#68748a;
+  margin-bottom:6px;
+}
+input,select{
+  width:100%;
+  min-width:0;
+  padding:11px 9px;
+  border:1px solid #dfe5ee;
+  border-radius:9px;
+  background:white;
+  font-size:14px;
+  outline:none;
+}
+input:focus,select:focus{
+  border-color:#7897ee;
+  box-shadow:0 0 0 3px #3569e817;
+}
+.form-bottom{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-top:16px;
+}
+.preview{font-size:13px;color:var(--muted)}
+.preview strong{font-size:20px;color:var(--green)}
+.table-wrap{overflow-x:auto}
+table{
+  width:100%;
+  min-width:900px;
+  border-collapse:collapse;
+}
+th{
+  background:#f7f9fd;
+  text-align:left;
+  font-size:12px;
+  color:var(--muted);
+  padding:12px 9px;
+  white-space:nowrap;
+}
+td{
+  padding:12px 9px;
+  font-size:13px;
+  border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+.profit{color:var(--green);font-weight:bold}
+.route{font-weight:650}
+.row-actions button{
+  padding:4px 6px;
+  background:none;
+  color:var(--blue);
+}
+.row-actions .delete{color:var(--red)}
+.filters{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+}
+.filters input,.filters select{
+  width:auto;
+  max-width:150px;
+  font-size:12px;
+  padding:9px;
+}
+.empty{
+  text-align:center;
+  padding:28px;
+  color:var(--muted);
+  font-size:13px;
+}
+.summary-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.summary-box{
+  background:#f8faff;
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:15px;
+}
+.summary-box h3{font-size:14px;margin:0 0 12px}
+.summary-box select{margin-bottom:10px}
+.summary-line{
+  display:flex;
+  justify-content:space-between;
+  margin:11px 0;
+  font-size:13px;
+  color:#68748a;
+}
+.summary-line b{color:var(--text)}
+.tip{
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.8;
+  margin-top:15px;
+}
+.toast{
+  position:fixed;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#19243a;
+  color:white;
+  padding:11px 17px;
+  border-radius:10px;
+  opacity:0;
+  pointer-events:none;
+  transition:.2s;
+}
+.toast.show{opacity:1}
+@media(max-width:760px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .form-grid{grid-template-columns:repeat(2,1fr)}
+  .summary-grid{grid-template-columns:1fr}
+}
+@media(max-width:390px){
+  .form-grid{grid-template-columns:1fr}
+  .stat strong{font-size:20px}
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<header class="header">
+  <div class="brand">
+    <div class="logo">↗</div>
+    <div>
+      <h1>拉货利润管家</h1>
+      <div class="subtitle">每趟运输，收入支出一目了然</div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="soft" id="exportBtn">导出备份</button>
+    <button class="soft" id="importBtn">导入备份</button>
+    <button class="danger" id="clearBtn">清除缓存</button>
+    <input type="file" id="fileInput"
+      accept=".json,application/json" hidden>
+  </div>
+</header>
+
+<!-- 利润总览 -->
+<section class="stats">
+  <div class="stat">
+    <label>累计净利润</label>
+    <strong class="green" id="totalProfit">¥0.00</strong>
+    <small id="totalTrips">共 0 趟运输</small>
+  </div>
+  <div class="stat">
+    <label>本月净利润</label>
+    <strong id="monthProfit">¥0.00</strong>
+    <small id="monthTrips">本月 0 趟</small>
+  </div>
+  <div class="stat">
+    <label>本年净利润</label>
+    <strong class="blue" id="yearProfit">¥0.00</strong>
+    <small id="yearTrips">本年 0 趟</small>
+  </div>
+  <div class="stat">
+    <label>累计总支出</label>
+    <strong id="totalCost">¥0.00</strong>
+    <small>全部运输费用</small>
+  </div>
+</section>
+
+<!-- 新增运输 -->
+<section class="panel" id="formPanel">
+  <div class="panel-head">
+    <h2 id="formTitle">＋ 记录一趟运输</h2>
+    <span class="muted">净利润 = 运费 - 总支出</span>
+  </div>
+
+  <form id="recordForm">
+    <input type="hidden" id="editId">
+
+    <div class="form-grid">
+      <div class="field">
+        <label>运输日期</label>
+        <input type="date" id="date" required>
+      </div>
+
+      <div class="field">
+        <label>运费收入（元）</label>
+        <input type="number" id="freight"
+          min="0" step="0.01" placeholder="例如 3500" required>
+      </div>
+
+      <div class="field">
+        <label>出发地</label>
+        <input id="origin" placeholder="例如 广州" required>
+      </div>
+
+      <div class="field">
+        <label>目的地</label>
+        <input id="destination" placeholder="例如 深圳" required>
+      </div>
+
+      <div class="field">
+        <label>货物名称</label>
+        <input id="cargo" placeholder="例如 家具、建材" required>
+      </div>
+
+      <div class="field">
+        <label>油费（元）</label>
+        <input type="number" id="fuel" min="0" step="0.01" value="0">
+      </div>
+
+      <div class="field">
+        <label>路费（元）</label>
+        <input type="number" id="toll" min="0" step="0.01" value="0">
+      </div>
+
+      <div class="field">
+        <label>信息费（元）</label>
+        <input type="number" id="info" min="0" step="0.01" value="0">
+      </div>
+
+      <div class="field">
+        <label>其他费用（元）</label>
+        <input type="number" id="other" min="0" step="0.01" value="0">
+      </div>
+
+      <div class="field">
+        <label>备注（选填）</label>
+        <input id="note" placeholder="装卸费、回程情况等">
+      </div>
+    </div>
+
+    <div class="form-bottom">
+      <div class="preview">
+        本趟预计净利润：
+        <strong id="preview">¥0.00</strong>
+      </div>
+
+      <div style="display:flex;gap:8px">
+        <button type="button" class="soft" id="cancelEdit" hidden>
+          取消修改
+        </button>
+        <button type="submit" class="primary" id="saveBtn">
+          保存这趟记录
+        </button>
+      </div>
+    </div>
+  </form>
+</section>
+
+<!-- 运输记录 -->
+<section class="panel">
+  <div class="panel-head">
+    <h2>运输记录</h2>
+
+    <div class="filters">
+      <input id="search" placeholder="搜索路线 / 货物">
+      <select id="monthFilter">
+        <option value="">全部月份</option>
+      </select>
+      <select id="yearFilter">
+        <option value="">全部年份</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>日期</th>
+          <th>运输路线</th>
+          <th>货物</th>
+          <th>运费</th>
+          <th>油费</th>
+          <th>路费</th>
+          <th>信息费</th>
+          <th>其他</th>
+          <th>净利润</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="recordList"></tbody>
+    </table>
+
+    <div class="empty" id="empty">
+      暂无运输记录，添加第一趟运输吧。
+    </div>
+  </div>
+</section>
+
+<!-- 月度年度统计 -->
+<section class="panel">
+  <div class="panel-head">
+    <h2>月度 / 年度利润统计</h2>
+    <span class="muted">自动汇总已保存的记录</span>
+  </div>
+
+  <div class="summary-grid">
+
+    <div class="summary-box">
+      <h3>月度利润</h3>
+      <select id="pickMonth"></select>
+
+      <div class="summary-line">
+        <span>运费收入</span>
+        <b id="mRevenue">¥0.00</b>
+      </div>
+      <div class="summary-line">
+        <span>总支出</span>
+        <b id="mCost">¥0.00</b>
+      </div>
+      <div class="summary-line">
+        <span>净利润</span>
+        <b class="profit" id="mProfit">¥0.00</b>
+      </div>
+      <div class="summary-line">
+        <span>运输趟数</span>
+        <b id="mTrips">0</b>
+      </div>
+    </div>
+
+    <div class="summary-box">
+      <h3>年度利润</h3>
+      <select id="pickYear"></select>
+
+      <div class="summary-line">
+        <span>运费收入</span>
+        <b id="yRevenue">¥0.00</b>
+      </div>
+      <div class="summary-line">
+        <span>总支出</span>
+        <b id="yCost">¥0.00</b>
+      </div>
+      <div class="summary-line">
+        <span>净利润</span>
+        <b class="profit" id="yProfit">¥0.00</b>
+      </div>
+      <div class="summary-line">
+        <span>运输趟数</span>
+        <b id="yTrips">0</b>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="tip">
+    数据自动保存在当前浏览器的本地缓存中。
+    建议定期导出备份。清除缓存会删除本工具保存的全部运输记录，
+    无法撤销。导入备份会覆盖现有记录。
+  </p>
+</section>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = "freight_profit_records_v1";
+
+let records = [];
+
+try {
+  records = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  if (!Array.isArray(records)) records = [];
+} catch(e) {
+  records = [];
+}
+
+const $ = id => document.getElementById(id);
+
+const money = n => "¥" + Number(n || 0).toLocaleString("zh-CN", {
+  minimumFractionDigits:2,
+  maximumFractionDigits:2
+});
+
+const number = id => Math.max(0, Number($(id).value) || 0);
+
+function expense(r) {
+  return r.fuel + r.toll + r.info + r.other;
+}
+
+function profit(r) {
+  return r.freight - expense(r);
+}
+
+function toast(msg) {
+  $("toast").textContent = msg;
+  $("toast").classList.add("show");
+  setTimeout(() => $("toast").classList.remove("show"), 2000);
+}
+
+function saveStorage() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+  render();
+}
+
+function aggregate(list) {
+  return {
+    revenue:list.reduce((s,r)=>s+r.freight,0),
+    cost:list.reduce((s,r)=>s+expense(r),0),
+    profit:list.reduce((s,r)=>s+profit(r),0),
+    trips:list.length
+  };
+}
+
+function fillOptions(id, values, allLabel) {
+  const el = $(id);
+  const old = el.value;
+
+  el.innerHTML = allLabel
+    ? `<option value="">${allLabel}</option>`
+    : "";
+
+  values.forEach(v => {
+    const option = document.createElement("option");
+    option.value = v;
+    option.textContent = v;
+    el.appendChild(option);
+  });
+
+  if ([...el.options].some(o=>o.value===old)) {
+    el.value = old;
+  }
+}
+
+function render() {
+  const now = new Date();
+
+  const currentMonth =
+    now.getFullYear() + "-" +
+    String(now.getMonth()+1).padStart(2,"0");
+
+  const currentYear = String(now.getFullYear());
+
+  const all = aggregate(records);
+
+  const month = aggregate(
+    records.filter(r=>r.date.startsWith(currentMonth))
+  );
+
+  const year = aggregate(
+    records.filter(r=>r.date.startsWith(currentYear))
+  );
+
+  $("totalProfit").textContent = money(all.profit);
+  $("totalTrips").textContent = `共 ${all.trips} 趟运输`;
+
+  $("monthProfit").textContent = money(month.profit);
+  $("monthTrips").textContent = `本月 ${month.trips} 趟`;
+
+  $("yearProfit").textContent = money(year.profit);
+  $("yearTrips").textContent = `本年 ${year.trips} 趟`;
+
+  $("totalCost").textContent = money(all.cost);
+
+  const months = [...new Set(
+    records.map(r=>r.date.slice(0,7))
+  )].sort().reverse();
+
+  const years = [...new Set(
+    records.map(r=>r.date.slice(0,4))
+  )].sort().reverse();
+
+  fillOptions("monthFilter",months,"全部月份");
+  fillOptions("yearFilter",years,"全部年份");
+
+  fillOptions(
+    "pickMonth",
+    months.length ? months : [currentMonth]
+  );
+
+  fillOptions(
+    "pickYear",
+    years.length ? years : [currentYear]
+  );
+
+  const keyword = $("search").value.trim().toLowerCase();
+  const mf = $("monthFilter").value;
+  const yf = $("yearFilter").value;
+
+  const list = records.filter(r => {
+    const matchKeyword =
+      !keyword ||
+      (
+        r.origin + r.destination +
+        r.cargo + r.note
+      ).toLowerCase().includes(keyword);
+
+    const matchMonth =
+      !mf || r.date.startsWith(mf);
+
+    const matchYear =
+      !yf || r.date.startsWith(yf);
+
+    return matchKeyword && matchMonth && matchYear;
+  }).sort((a,b)=>b.date.localeCompare(a.date));
+
+  const tbody = $("recordList");
+  tbody.innerHTML = "";
+
+  $("empty").style.display = list.length ? "none" : "block";
+
+  list.forEach(r => {
+    const tr = document.createElement("tr");
+
+    const values = [
+      r.date,
+      r.origin + " → " + r.destination,
+      r.cargo,
+      money(r.freight),
+      money(r.fuel),
+      money(r.toll),
+      money(r.info),
+      money(r.other),
+      money(profit(r))
+    ];
+
+    values.forEach((v,i)=>{
+      const td = document.createElement("td");
+      td.textContent = v;
+
+      if(i===1) td.className="route";
+      if(i===8) td.className="profit";
+
+      tr.appendChild(td);
+    });
+
+    const td = document.createElement("td");
+    td.className="row-actions";
+
+    const editBtn = document.createElement("button");
+    editBtn.textContent="编辑";
+    editBtn.onclick=()=>editRecord(r.id);
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent="删除";
+    deleteBtn.className="delete";
+    deleteBtn.onclick=()=>deleteRecord(r.id);
+
+    td.append(editBtn,deleteBtn);
+    tr.appendChild(td);
+
+    tbody.appendChild(tr);
+  });
+
+  updateSummary();
+}
+
+function updateSummary() {
+  const month = aggregate(
+    records.filter(r=>r.date.startsWith($("pickMonth").value))
+  );
+
+  const year = aggregate(
+    records.filter(r=>r.date.startsWith($("pickYear").value))
+  );
+
+  $("mRevenue").textContent=money(month.revenue);
+  $("mCost").textContent=money(month.cost);
+  $("mProfit").textContent=money(month.profit);
+  $("mTrips").textContent=month.trips+" 趟";
+
+  $("yRevenue").textContent=money(year.revenue);
+  $("yCost").textContent=money(year.cost);
+  $("yProfit").textContent=money(year.profit);
+  $("yTrips").textContent=year.trips+" 趟";
+}
+
+function calculatePreview() {
+  const result =
+    number("freight") -
+    number("fuel") -
+    number("toll") -
+    number("info") -
+    number("other");
+
+  $("preview").textContent=money(result);
+}
+
+[
+  "freight","fuel","toll","info","other"
+].forEach(id=>{
+  $(id).addEventListener("input",calculatePreview);
+});
+
+function resetForm() {
+  $("recordForm").reset();
+  $("editId").value="";
+
+  $("date").value=new Date().toISOString().slice(0,10);
+
+  ["fuel","toll","info","other"].forEach(id=>{
+    $(id).value=0;
+  });
+
+  $("formTitle").textContent="＋ 记录一趟运输";
+  $("saveBtn").textContent="保存这趟记录";
+  $("cancelEdit").hidden=true;
+
+  calculatePreview();
+}
+
+function editRecord(id) {
+  const r=records.find(x=>x.id===id);
+  if(!r)return;
+
+  Object.entries(r).forEach(([key,value])=>{
+    if($(key)) $(key).value=value;
+  });
+
+  $("editId").value=id;
+  $("formTitle").textContent="✎ 修改运输记录";
+  $("saveBtn").textContent="保存修改";
+  $("cancelEdit").hidden=false;
+
+  calculatePreview();
+
+  $("formPanel").scrollIntoView({
+    behavior:"smooth"
+  });
+}
+
+function deleteRecord(id) {
+  if(!confirm("确定删除这条运输记录吗？"))return;
+
+  records=records.filter(r=>r.id!==id);
+
+  saveStorage();
+
+  if($("editId").value==id) resetForm();
+
+  toast("记录已删除");
+}
+
+$("recordForm").addEventListener("submit",e=>{
+  e.preventDefault();
+
+  const id=$("editId").value;
+
+  const record={
+    id:id ? Number(id) : Date.now(),
+    date:$("date").value,
+    freight:number("freight"),
+    origin:$("origin").value.trim(),
+    destination:$("destination").value.trim(),
+    cargo:$("cargo").value.trim(),
+    fuel:number("fuel"),
+    toll:number("toll"),
+    info:number("info"),
+    other:number("other"),
+    note:$("note").value.trim()
+  };
+
+  if(id) {
+    records=records.map(r=>r.id==id?record:r);
+  } else {
+    records.push(record);
+  }
+
+  saveStorage();
+  resetForm();
+
+  toast(id?"修改已保存":"运输记录已保存");
+});
+
+$("cancelEdit").onclick=resetForm;
+
+["search","monthFilter","yearFilter"].forEach(id=>{
+  $(id).addEventListener(
+    id==="search"?"input":"change",
+    render
+  );
+});
+
+["pickMonth","pickYear"].forEach(id=>{
+  $(id).addEventListener("change",updateSummary);
+});
+
+// 清除缓存
+$("clearBtn").onclick=()=>{
+  if(!confirm("确定清除全部运输记录？此操作无法撤销！"))return;
+
+  records=[];
+  localStorage.removeItem(STORAGE_KEY);
+
+  render();
+  resetForm();
+
+  toast("缓存已清除");
+};
+
+// 导出数据备份
+$("exportBtn").onclick=()=>{
+  const blob=new Blob(
+    [JSON.stringify(records,null,2)],
+    {type:"application/json"}
+  );
+
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+
+  a.href=url;
+  a.download="拉货利润备份.json";
+  a.click();
+
+  URL.revokeObjectURL(url);
+
+  toast("备份已导出");
+};
+
+// 导入备份
+$("importBtn").onclick=()=>{
+  $("fileInput").click();
+};
+
+$("fileInput").onchange=async e=>{
+  const file=e.target.files[0];
+  if(!file)return;
+
+  try{
+    const data=JSON.parse(await file.text());
+
+    if(!Array.isArray(data)) {
+      throw new Error("格式错误");
+    }
+
+    if(!data.every(r=>
+      r.date &&
+      Number.isFinite(Number(r.freight))
+    )) {
+      throw new Error("数据不完整");
+    }
+
+    if(confirm("导入会覆盖当前所有记录，确定继续吗？")) {
+      records=data.map(r=>({
+        ...r,
+        id:Number(r.id)||Date.now()+Math.random(),
+        freight:Number(r.freight)||0,
+        fuel:Number(r.fuel)||0,
+        toll:Number(r.toll)||0,
+        info:Number(r.info)||0,
+        other:Number(r.other)||0,
+        origin:r.origin||"",
+        destination:r.destination||"",
+        cargo:r.cargo||"",
+        note:r.note||""
+      }));
+
+      saveStorage();
+      resetForm();
+      toast("数据导入成功");
+    }
+  }catch(err){
+    alert("备份文件格式不正确，导入失败");
+  }
+
+  e.target.value="";
+};
+
+// 初始化
+$("date").value=new Date().toISOString().slice(0,10);
+
+render();
+calculatePreview();
+
+</script>
+</body>
+</html>
